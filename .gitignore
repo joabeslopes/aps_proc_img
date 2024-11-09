@@ -1,0 +1,3 @@
+# mantem a pasta video, mas ignora os arquivos dela pois é pesado para manter no git
+video/**
+!video/.gitkeep
