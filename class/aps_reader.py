@@ -44,7 +44,7 @@ class PlacaDetector:
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 800)
 
         # Definir FPS para processar apenas alguns quadros por segundo
-        fps = 5  # Ajuste conforme necessário
+        fps = 10  # Ajuste conforme necessário
         frame_counter = 0
         while True:
             ret, frame = cap.read()
