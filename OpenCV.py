@@ -1,19 +1,8 @@
 import cv2
-import pytesseract
-from aps_db import BancoDeDados  # Importa a classe de banco de dados
 
 # Caminho para o arquivo XML do Haar Cascade para placas
 cascade_path = 'haarcascades/haarcascade_russian_plate_number.xml'
 placa_cascade = cv2.CascadeClassifier(cascade_path)
-
-# Configuração do Tesseract (ajuste o caminho conforme necessário)
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-
-# Caminho do banco de dados
-db_path = 'banco_de_dados.db'
-
-# Inicializa a classe de banco de dados
-banco = BancoDeDados(db_path)
 
 # Abrir o vídeo com VideoCapture
 cap = cv2.VideoCapture('video/EVENTO CARRO.mp4')
@@ -53,15 +42,6 @@ while True:
         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
         roi = frame[y:y + h, x:x + w]
 
-        # Usar OCR para ler o texto da placa
-        texto_placa = pytesseract.image_to_string(roi, config='--psm 8')  # Modo 8: trata a imagem como uma única palavra
-        texto_placa = texto_placa.strip().replace(" ", "")  # Limpar espaços em branco e caracteres indesejados
-        print(f"Placa detectada: {texto_placa}")
-
-        # Verificar no banco de dados
-        if texto_placa:
-            banco.verificar_placa(texto_placa)
-
     # Exibir o vídeo com as placas detectadas
     cv2.imshow('Detecção de Placas', frame)
 
@@ -73,6 +53,3 @@ while True:
 # Liberar o objeto de captura e fechar as janelas
 cap.release()
 cv2.destroyAllWindows()
-
-# Fechar a conexão com o banco de dados
-banco.close()
