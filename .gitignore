@@ -3,3 +3,5 @@ video/**
 !video/.gitkeep
 
 **/__pycache__
+
+venv/**
