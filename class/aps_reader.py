@@ -51,7 +51,6 @@ class PlacaDetector:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-# Exemplo de uso
 # Caminhos para os arquivos
 image_path = 'foto/carros4.jpg'  # Caminho para a imagem
 cascade_path = cv2.data.haarcascades + 'haarcascade_russian_plate_number.xml'  # Caminho para o classificador Haar
