@@ -12,7 +12,7 @@ class PlacaDetector:
         self.cascade_path = cascade_path
         self.placa_cascade = cv2.CascadeClassifier(cascade_path)
         self.array_placas = []
-        self.ocr = easyocr.Reader(['pt'])
+        self.ocr = easyocr.Reader(['pt', 'en'])
 
     def processar_imagem(self, img):
         """Processa a imagem, detectando placas e usando OCR."""
@@ -25,7 +25,12 @@ class PlacaDetector:
         for (x, y, w, h) in placas:
             cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
             roi_placa = img[y:y + h, x:x + w]
-
+        
+        # Exibir a imagem com a placa detectada
+        cv2.imshow('Deteccao de Placas', roi_placa)
+        # Aguardar até que o usuário feche a janela
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
         return roi_placa
 
     def executar(self):
@@ -43,10 +48,3 @@ class PlacaDetector:
         for n in result:
             self.array_placas.append(n[1])
             print(f"possivel placa lida: {n[1]}")
-
-        # # Exibir a imagem com as placas detectadas
-        # cv2.imshow('Deteccao de Placas', img_placa)
-
-        # # Aguardar até que o usuário feche a janela
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
