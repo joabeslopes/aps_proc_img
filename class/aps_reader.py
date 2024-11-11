@@ -1,78 +1,64 @@
 import cv2
 import pytesseract
-from aps_db import BancoDeDados  # Importa a classe de banco de dados
 
-# Caminho para o arquivo XML do Haar Cascade para placas
-cascade_path = 'haarcascades/haarcascade_russian_plate_number.xml'
-placa_cascade = cv2.CascadeClassifier(cascade_path)
+class PlacaDetector:
+    def __init__(self, image_path, cascade_path, tesseract_path):
+        """
+        Inicializa o detector de placas e configurações necessárias.
+        :param image_path: Caminho para a imagem.
+        :param cascade_path: Caminho para o classificador Haar Cascade.
+        :param tesseract_path: Caminho para o executável do Tesseract.
+        """
+        self.image_path = image_path
+        self.cascade_path = cascade_path
+        self.tesseract_path = tesseract_path
+        self.placa_cascade = cv2.CascadeClassifier(cascade_path)
+        self.array_placas = []
+        # Configuração do Tesseract
+        pytesseract.pytesseract.tesseract_cmd = tesseract_path
 
-# Configuração do Tesseract (ajuste o caminho conforme necessário)
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+    def processar_imagem(self, img):
+        """Processa a imagem, detectando placas e usando OCR."""
+        cinza = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        placas = self.placa_cascade.detectMultiScale(cinza, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+        
+        for (x, y, w, h) in placas:
+            cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            roi_placa = img[y:y + h, x:x + w]
+            texto_placa = pytesseract.image_to_string(roi_placa, config='--psm 8')  # Modo 8: trata a imagem como uma única palavra
+            texto_placa = texto_placa.strip().replace(" ", "")  # Limpar espaços em branco e caracteres indesejados
+            
+            if texto_placa:
+                self.array_placas.append(texto_placa)
+                print(f"Placa detectada: {texto_placa}")
+        return img
 
-# Caminho do banco de dados
-db_path = 'banco_de_dados.db'
+    def executar(self):
+        """Carrega a imagem e realiza a detecção de placas."""
+        # Carregar a imagem
+        img = cv2.imread(self.image_path)
 
-# Inicializa a classe de banco de dados
-banco = BancoDeDados(db_path)
+        if img is None:
+            print("Erro ao carregar a imagem")
+            return
+        
+        img_com_placas = self.processar_imagem(img)
+        
+        # Exibir a imagem com as placas detectadas
+        cv2.imshow('Detecção de Placas', img_com_placas)
 
-# Abrir o vídeo com VideoCapture
-cap = cv2.VideoCapture('video/EVENTO CARRO.mp4')
+        # Aguardar até que o usuário feche a janela
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
-# Verificar se o vídeo foi aberto corretamente
-if not cap.isOpened():
-    print("Erro ao abrir o arquivo de vídeo")
-    exit()
+# Exemplo de uso
+# Caminhos para os arquivos
+image_path = 'foto/carros4.jpg'  # Caminho para a imagem
+cascade_path = cv2.data.haarcascades + 'haarcascade_russian_plate_number.xml'  # Caminho para o classificador Haar
+tesseract_path = r'C:\Program Files\Tesseract-OCR\tesseract.exe'  # Caminho para o executável do Tesseract (ajuste conforme necessário)
 
-# Reduz a resolução do vídeo para otimizar o processamento
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 800)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 800)
+# Criar instância do detector
+detector = PlacaDetector(image_path, cascade_path, tesseract_path)
 
-# Definir FPS para processar apenas alguns quadros por segundo
-fps = 10  # Ajuste conforme necessário
-frame_counter = 0
-
-while True:
-    ret, frame = cap.read()
-
-    if not ret:
-        print("Erro ao ler o quadro ou fim do vídeo.")
-        break
-
-    frame_counter += 1
-    if frame_counter % fps != 0:
-        continue
-
-    # Converter o quadro para escala de cinza, necessário para Haar Cascade
-    cinza = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-    # Detectar placas no quadro
-    placas = placa_cascade.detectMultiScale(cinza, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
-
-    # Percorrer as placas detectadas e desenhar retângulos
-    for (x, y, w, h) in placas:
-        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        roi = frame[y:y + h, x:x + w]
-
-        # Usar OCR para ler o texto da placa
-        texto_placa = pytesseract.image_to_string(roi, config='--psm 8')  # Modo 8: trata a imagem como uma única palavra
-        texto_placa = texto_placa.strip().replace(" ", "")  # Limpar espaços em branco e caracteres indesejados
-        print(f"Placa detectada: {texto_placa}")
-
-        # Verificar no banco de dados
-        if texto_placa:
-            banco.verificar_placa(texto_placa)
-
-    # Exibir o vídeo com as placas detectadas
-    cv2.imshow('Detecção de Placas', frame)
-
-    # Verificar se a tecla 'q' foi pressionada ou a janela foi fechada
-    key = cv2.waitKey(1) & 0xFF
-    if key == ord('q') or cv2.getWindowProperty('Detecção de Placas', cv2.WND_PROP_VISIBLE) < 1:
-        break
-
-# Liberar o objeto de captura e fechar as janelas
-cap.release()
-cv2.destroyAllWindows()
-
-# Fechar a conexão com o banco de dados
-banco.close()
+# Executar a detecção na imagem
+detector.executar()
