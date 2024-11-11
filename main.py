@@ -8,13 +8,11 @@ import aps_reader as reader
 
 cascade_path = 'haarcascades/haarcascade_russian_plate_number.xml'
 
-video_path = 'video/video_teste.mp4'
+image_path = 'data/placa_3.png'
 
-tesseract_path = '/usr/bin/tesseract'
+tesseract_path = r'/usr/bin/tesseract' # Linux
+#tesseract_path = r'C:\Program Files\Tesseract-OCR\tesseract.exe' # Windows
 
-detector = reader.PlacaDetector(video_path, cascade_path, tesseract_path)
+detector = reader.PlacaDetector(image_path, cascade_path, tesseract_path)
 
 detector.executar()
-
-for placa in detector.array_placas:
-    print(f"placa encontrada: {placa}")
