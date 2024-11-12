@@ -24,6 +24,24 @@ class DbManager:
                                 "J": "7",
                                 "D": "8" }
 
+        try:
+            # Conexão com o banco de dados
+            self.conexao = mysql.connector.connect(
+                host="localhost",         # Endereço do servidor (exemplo: 'localhost')
+                user="aps_db_user",        # Usuário do banco de dados
+                password="aps_db_password",    # Senha do banco de dados
+                database="aps_database",     # Nome do banco de dados
+                charset="utf8mb3"
+            )
+
+            # Criação do cursor para executar consultas
+            self.cursor = self.conexao.cursor()
+
+        except mysql.connector.Error as erro:
+            print(f"Erro ao conectar ao banco de dados: {erro}")
+            exit()
+
+
     def tratamento_string(self, s: str):
         # Remove espaço caracteres especiais, com exceção do /
         s = re.sub(r'[^a-zA-Z0-9\/]', '', s)
@@ -72,48 +90,20 @@ class DbManager:
         if not placa_tratada:
             return None  # Se a placa não for válida, retorna None
 
-        try:
-            # Conexão com o banco de dados
-            conexao = mysql.connector.connect(
-                host="local_host",         # Endereço do servidor (exemplo: 'localhost')
-                user="aps_db_user",        # Usuário do banco de dados
-                password="aps_db_password",    # Senha do banco de dados
-                database="aps_database"     # Nome do banco de dados
-            )
+        # Consulta para buscar a placa tratada
+        consulta = "SELECT * FROM aps_veiculos WHERE placa = %s"
+        self.cursor.execute(consulta, (placa_tratada,))
 
-            # Criação do cursor para executar consultas
-            cursor = conexao.cursor()
+        # Obtenção dos resultados
+        resultados = self.cursor.fetchall()
+        
+        # Verifica se há resultados
+        if resultados:
+            return resultados
+        else:
+            return None  # Retorna None se não houver resultados
 
-            # Consulta para buscar a placa tratada
-            consulta = "SELECT * FROM aps_veiculos WHERE placa LIKE %s"
-            parametro = f"%{placa_tratada}%"
-            cursor.execute(consulta, (parametro,))
-
-            # Obtenção dos resultados
-            resultados = cursor.fetchall()
-            
-            # Verifica se há resultados
-            if resultados:
-                return resultados
-            else:
-                return None  # Retorna None se não houver resultados
-
-        except mysql.connector.Error as erro:
-            print(f"Erro ao conectar ao banco de dados: {erro}")
-            return None
-
-        finally:
-            # Fecha a conexão com o banco de dados
-            if conexao.is_connected():
-                cursor.close()
-                conexao.close()
-
-# Exemplo de uso
-db_manager = DbManager()
-
-# Teste com uma placa válida
-placa_encontrada = db_manager.busca_no_banco("OIZB456")
-if placa_encontrada:
-    print("Placa encontrada:", placa_encontrada)
-else:
-    print("Placa não encontrada.")
+    def encerra_conexao(self):
+        if self.conexao.is_connected():
+                self.cursor.close()
+                self.conexao.close()
