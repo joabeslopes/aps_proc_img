@@ -12,7 +12,7 @@ class PlacaDetector:
         self.cascade_path = cascade_path
         self.placa_cascade = cv2.CascadeClassifier(cascade_path)
         self.array_placas = []
-        self.ocr = easyocr.Reader(['pt', 'en'])
+        self.ocr = easyocr.Reader(['pt'])
 
     def processar_imagem(self, img):
         """Processa a imagem, detectando placas e usando OCR."""
