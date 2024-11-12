@@ -43,15 +43,15 @@ class DbManager:
 
 
     def tratamento_string(self, s: str):
-        # Remove espaço caracteres especiais, com exceção do /
-        s = re.sub(r'[^a-zA-Z0-9\/]', '', s)
+        # Remove espaço caracteres especiais, com exceção do / e |
+        s = re.sub(r'[^a-zA-Z0-9\/\|]', '', s)
 
         # Verifica tamanho mínimo
         if not len(s) == 7:
             return ""
 
-        # Substitui "/" por "I"
-        s = s.replace("/", "I")
+        # Substitui "/" e "|" por "I"
+        s = s.replace("/", "I").replace("|","I")
 
         s = s.upper()
         primeiros_3 = s[:3]
